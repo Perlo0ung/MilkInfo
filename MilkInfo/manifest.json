@@ -1,0 +1,6 @@
+{
+  "Name": "MilkInfo",
+  "Authour": "Perlo_0ung",
+  "Description": "Show Milk on Cow",
+  "EntryDll":  "MilkInfo.dll"
+}
