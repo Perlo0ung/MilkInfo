@@ -14,7 +14,7 @@ namespace MilkInfo
         private static MilkInfoConfig ModConfig { get; set; }
         private static int updateInterval = 0;
         private static int playEmote = 40;
-        private static int emoteID = 0;
+        private static int emoteID = 1;
 
 
         public override void Entry(params object[] objects)
@@ -34,39 +34,29 @@ namespace MilkInfo
             {
                 Game1.spriteBatch.Begin(SpriteSortMode.Immediate, BlendState.AlphaBlend);
                 Texture2D fileTexture;
-                using (FileStream fileStream = new FileStream(@"C:\Users\Michael\Pictures\Items.png", FileMode.Open))
+                using (FileStream fileStream = new FileStream(@"C:\Users\Michael\Pictures\herz.png", FileMode.Open))
                 {
                     fileTexture = Texture2D.FromStream(Game1.graphics.GraphicsDevice, fileStream);
                 }
 
-                Vector2 myposition = new Vector2(Game1.GlobalToLocal(Game1.player.position).X *Game1.options.zoomLevel ,Game1.GlobalToLocal(Game1.player.position).Y * Game1.options.zoomLevel +emoteID);
-             
-                Rectangle myrect = new Rectangle( (int) myposition.X, (int) myposition.Y, 3*16, 3*16);
+
+                Vector2 myposition = Game1.player.getLocalPosition(Game1.viewport);
+                AnimatedSprite playerBox = Game1.player.sprite;
+
+                Rectangle myrect = new Rectangle( (int) ( (myposition.X - 8) * Game1.options.zoomLevel), (int) ( (myposition.Y - playerBox.spriteHeight * 6 )  
+                    * Game1.options.zoomLevel), (int) (80 * Game1.options.zoomLevel), (int)(80 * Game1.options.zoomLevel));
+
                 Game1.spriteBatch.Draw(fileTexture, myrect, Color.White);
-
-                /*
-                 Game1.spriteBatch.Begin(SpriteSortMode.Immediate, BlendState.AlphaBlend);
-
-
-                Game1.content.Load<Texture2D>("textures\\Milk");
-                // Game1.spriteBatch.Draw(whitePixel, Game1.player.position , Color.SaddleBrown);
-
-                Vector2 myposition = new Vector2(Game1.GlobalToLocal(Game1.player.position).X + -200, Game1.GlobalToLocal(Game1.player.position).Y -215);
-                //sb.Draw(icon,Game1.GlobalToLocal(Game1.player.position),Color.Beige);
-                Rectangle myrect = new Rectangle((int)myposition.X, (int)myposition.Y, 16, 16);
-
-                Game1.spriteBatch.Draw(Game1.buffsIcons, myrect, Color.Red);
-
-                Game1.spriteBatch.DrawString(Game1.smallFont, "!!!!!", myposition, null);
-
-                Game1.spriteBatch.End();
-             
-                 * */
 
                 Game1.spriteBatch.End();
             }
         }
         
+        private static int getGameZoom()
+        {
+            return Convert.ToInt32(Math.Ceiling(Game1.options.zoomLevel));
+        }
+
         private static void PlayerEvents_LoadedGame(object sender, EventArgsLoadedGameChanged e)
         {
             // Only load the event handler after the save file has been loaded.
