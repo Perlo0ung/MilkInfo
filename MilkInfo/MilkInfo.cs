@@ -23,16 +23,18 @@ namespace MilkInfo
             ModConfig = new MilkInfoConfig().InitializeConfig(BaseConfigPath);
             Command.RegisterCommand("emote", "Bla", new[] { "(Int32)<value> The target money" }).CommandFired += setEmoteID;
             // Execute a handler when the save file is loaded.
-            PlayerEvents.LoadedGame += PlayerEvents_LoadedGame;
+            PlayerEvents.LoadedGame += PlayerEvents_LoadedGame; ;
             GraphicsEvents.DrawTick += drawTickEvent;
         }
+
 
         // Draw event (when Map Page is opened)
         private void drawTickEvent(object sender, EventArgs e)
         {
             if (Game1.hasLoadedGame)
             {
-                Game1.spriteBatch.Begin(SpriteSortMode.Immediate, BlendState.AlphaBlend);
+                Game1.spriteBatch.Begin(SpriteSortMode.BackToFront, BlendState.AlphaBlend);
+                
                 Texture2D fileTexture;
                 using (FileStream fileStream = new FileStream(@"C:\Users\Michael\Pictures\herz.png", FileMode.Open))
                 {
@@ -46,7 +48,7 @@ namespace MilkInfo
                 Rectangle myrect = new Rectangle( (int) ( (myposition.X - 8) * Game1.options.zoomLevel), (int) ( (myposition.Y - playerBox.spriteHeight * 6 )  
                     * Game1.options.zoomLevel), (int) (80 * Game1.options.zoomLevel), (int)(80 * Game1.options.zoomLevel));
 
-                Game1.spriteBatch.Draw(fileTexture, myrect, Color.White);
+                Game1.spriteBatch.Draw(fileTexture, myrect, null, Color.White, 0f, new Vector2(0, 0), SpriteEffects.None, 1f);
 
                 Game1.spriteBatch.End();
             }
