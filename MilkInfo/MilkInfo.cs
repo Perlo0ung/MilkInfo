@@ -36,7 +36,8 @@ namespace MilkInfo
                 Game1.spriteBatch.Begin(SpriteSortMode.BackToFront, BlendState.AlphaBlend);
                 
                 Texture2D fileTexture;
-                using (FileStream fileStream = new FileStream(@"C:\Users\Michael\Pictures\herz.png", FileMode.Open))
+
+                using (FileStream fileStream = new FileStream(Path.Combine(PathOnDisk, @"Resources\herz.png"), FileMode.Open))
                 {
                     fileTexture = Texture2D.FromStream(Game1.graphics.GraphicsDevice, fileStream);
                 }

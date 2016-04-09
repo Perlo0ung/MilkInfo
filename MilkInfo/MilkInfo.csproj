@@ -100,10 +100,15 @@
       <SubType>Designer</SubType>
     </None>
   </ItemGroup>
+  <ItemGroup>
+    <Content Include="Resources\herz.png">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
     <PostBuildEvent>mkdir  "C:\Program Files (x86)\Steam\steamapps\common\Stardew Valley\Mods\$(ProjectName)" 2&gt; NUL
-copy "$(TargetDir)*" "C:\Program Files (x86)\Steam\steamapps\common\Stardew Valley\Mods\$(ProjectName)"
+xcopy /y /s "$(TargetDir)*" "C:\Program Files (x86)\Steam\steamapps\common\Stardew Valley\Mods\$(ProjectName)"
 
 </PostBuildEvent>
   </PropertyGroup>
