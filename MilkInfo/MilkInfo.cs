@@ -5,36 +5,88 @@ using StardewValley;
 using StardewModdingAPI.Events;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+using System.Collections.Generic;
 
 namespace MilkInfo
 {
 
     public class MilkInfo : Mod
     {
+        private static readonly int offset = 10;
+        private static readonly int boxOffset = 8;
+        private static readonly int playEmote = 40;
         private static MilkInfoConfig ModConfig { get; set; }
         private static int updateInterval = 0;
-        private static int playEmote = 40;
-        private static int emoteID = 1;
-
+        private static Dictionary<StardewValley.Object, int> machineRegister = new Dictionary<StardewValley.Object, int>();
+        private static Texture2D pixel;
 
         public override void Entry(params object[] objects)
         {
             // Load config file (config.json).
             ModConfig = new MilkInfoConfig().InitializeConfig(BaseConfigPath);
-            Command.RegisterCommand("emote", "Bla", new[] { "(Int32)<value> The target money" }).CommandFired += setEmoteID;
             // Execute a handler when the save file is loaded.
-            PlayerEvents.LoadedGame += PlayerEvents_LoadedGame; ;
-            GraphicsEvents.DrawTick += drawTickEvent;
+            PlayerEvents.LoadedGame += PlayerEvents_LoadedGame;
+            GraphicsEvents.OnPostRenderEvent += drawTickEvent;
+            GraphicsEvents.OnPostRenderEvent += drawProgessBar;
+
         }
 
+        private void drawProgessBar(object sender, EventArgs e)
+        {
+            if (pixel == null)
+            {
+                pixel = new Texture2D(Game1.graphics.GraphicsDevice, 1, 1);
+                pixel.SetData(new Color[] { Color.White });
+            }
 
-        // Draw event (when Map Page is opened)
+            if (!Game1.hasLoadedGame) return;
+            
+            foreach (KeyValuePair<Vector2, StardewValley.Object> entry in Game1.currentLocation.objects)
+            {
+                StardewValley.Object tObj = entry.Value;
+                if ( tObj.bigCraftable )
+                {
+                    bool keyPresent = machineRegister.ContainsKey(tObj);
+                    if (tObj.minutesUntilReady > 0 && !keyPresent)
+                    {
+                        machineRegister.Add(tObj, tObj.minutesUntilReady);
+                        Log.Debug(String.Format("Name: {0} Readyin: {1} Harvest: {2}", tObj.name, tObj.minutesUntilReady, tObj.readyForHarvest));
+                    }
+                    if (tObj.readyForHarvest && keyPresent)
+                    {
+                        machineRegister.Remove(tObj);
+                    }
+                
+                }
+            }
+            foreach (KeyValuePair<StardewValley.Object, int> entry in machineRegister)
+            {
+                StardewValley.Object obj = entry.Key;
+                Vector2 pos = obj.getLocalPosition(Game1.viewport);
+
+                /* calculate progress */
+                double progress = 100 - Math.Round((100 / (double)(entry.Value) * entry.Key.minutesUntilReady) * 2) / 2;
+
+                /* surrounding box */
+                Rectangle outerBox = new Rectangle((int)pos.X+4, (int)pos.Y +40 , obj.boundingBox.Width - offset, obj.boundingBox.Height / 2 - offset);
+
+                /* actual progress bar box */
+                int barWidth = (int)(Math.Max(((double)(obj.boundingBox.Width - offset) / 100) * progress, 1));
+                Rectangle innerBox = new Rectangle((int)pos.X +8, (int)pos.Y +44, barWidth, obj.boundingBox.Height / 2 - offset - boxOffset);
+                
+                /* Draw Stuff*/
+                Game1.spriteBatch.Draw(pixel, outerBox, Color.SaddleBrown);
+                Game1.spriteBatch.Draw(pixel, innerBox, Color.GreenYellow);
+
+            }
+        }
+
         private void drawTickEvent(object sender, EventArgs e)
         {
             if (Game1.hasLoadedGame)
             {
-                Game1.spriteBatch.Begin(SpriteSortMode.BackToFront, BlendState.AlphaBlend);
-                
+                //Game1.spriteBatch.Begin(SpriteSortMode.BackToFront, BlendState.AlphaBlend);
+
                 Texture2D fileTexture;
 
                 using (FileStream fileStream = new FileStream(Path.Combine(PathOnDisk, @"Resources\herz.png"), FileMode.Open))
@@ -42,16 +94,14 @@ namespace MilkInfo
                     fileTexture = Texture2D.FromStream(Game1.graphics.GraphicsDevice, fileStream);
                 }
 
-
                 Vector2 myposition = Game1.player.getLocalPosition(Game1.viewport);
                 AnimatedSprite playerBox = Game1.player.sprite;
 
-                Rectangle myrect = new Rectangle( (int) ( (myposition.X - 8) * Game1.options.zoomLevel), (int) ( (myposition.Y - playerBox.spriteHeight * 6 )  
-                    * Game1.options.zoomLevel), (int) (80 * Game1.options.zoomLevel), (int)(80 * Game1.options.zoomLevel));
+                Rectangle myrect = new Rectangle( (int) ( (myposition.X - 8)), (int) (myposition.Y - playerBox.spriteHeight * 6) , 80,80);
 
                 Game1.spriteBatch.Draw(fileTexture, myrect, null, Color.White, 0f, new Vector2(0, 0), SpriteEffects.None, 1f);
+                //Game1.spriteBatch.End();
 
-                Game1.spriteBatch.End();
             }
         }
         
@@ -106,26 +156,5 @@ namespace MilkInfo
             }
 
         }
-
-        private static void setEmoteID(object sender, EventArgsCommand e)
-        {
-            if (e.Command.CalledArgs.Length > 0)
-            {
-                var ou = 0;
-                if (int.TryParse(e.Command.CalledArgs[0], out ou))
-                {
-                    emoteID = ou;
-                }
-                else
-                {
-                    Log.LogValueNotInt32();
-                }
-            }
-            else
-            {
-                Log.LogValueNotSpecified();
-            }
-        }
-
     }
 }
