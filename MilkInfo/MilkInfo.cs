@@ -20,6 +20,8 @@ namespace MilkInfo
         private static Dictionary<StardewValley.Object, int> machineRegister = new Dictionary<StardewValley.Object, int>();
         private static Texture2D pixel;
 
+        private static readonly Color[] getColor = { Color.OrangeRed, Color.Orange, Color.Yellow, Color.LawnGreen };
+
         public override void Entry(params object[] objects)
         {
             // Load config file (config.json).
@@ -71,12 +73,12 @@ namespace MilkInfo
                 Rectangle outerBox = new Rectangle((int)pos.X + 4, (int)pos.Y + 40 , obj.boundingBox.Width - offset, obj.boundingBox.Height / 2 - offset);
 
                 /* actual progress bar box */
-                int barWidth = (int)(Math.Max(((double)(obj.boundingBox.Width - offset) / 100) * progress, 1));
+                int barWidth = (int)(Math.Max(((double)(obj.boundingBox.Width - offset - boxOffset) / 100) * progress, 1));
                 Rectangle innerBox = new Rectangle((int)pos.X + 8, (int)pos.Y + 44, barWidth, obj.boundingBox.Height / 2 - offset - boxOffset);
                 
                 /* Draw Stuff*/
                 Game1.spriteBatch.Draw(pixel, outerBox, Color.SaddleBrown);
-                Game1.spriteBatch.Draw(pixel, innerBox, Color.GreenYellow);
+                Game1.spriteBatch.Draw(pixel, innerBox, getColor[(int)progress / (100 / getColor.Length)]);
 
             }
         }
