@@ -68,11 +68,11 @@ namespace MilkInfo
                 double progress = 100 - Math.Round((100 / (double)(entry.Value) * entry.Key.minutesUntilReady) * 2) / 2;
 
                 /* surrounding box */
-                Rectangle outerBox = new Rectangle((int)pos.X+4, (int)pos.Y +40 , obj.boundingBox.Width - offset, obj.boundingBox.Height / 2 - offset);
+                Rectangle outerBox = new Rectangle((int)pos.X + 4, (int)pos.Y + 40 , obj.boundingBox.Width - offset, obj.boundingBox.Height / 2 - offset);
 
                 /* actual progress bar box */
                 int barWidth = (int)(Math.Max(((double)(obj.boundingBox.Width - offset) / 100) * progress, 1));
-                Rectangle innerBox = new Rectangle((int)pos.X +8, (int)pos.Y +44, barWidth, obj.boundingBox.Height / 2 - offset - boxOffset);
+                Rectangle innerBox = new Rectangle((int)pos.X + 8, (int)pos.Y + 44, barWidth, obj.boundingBox.Height / 2 - offset - boxOffset);
                 
                 /* Draw Stuff*/
                 Game1.spriteBatch.Draw(pixel, outerBox, Color.SaddleBrown);
