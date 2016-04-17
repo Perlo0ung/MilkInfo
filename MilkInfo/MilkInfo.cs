@@ -4,6 +4,7 @@ using StardewModdingAPI;
 using StardewValley;
 using StardewModdingAPI.Events;
 using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Input;
 using Microsoft.Xna.Framework.Graphics;
 using System.Collections.Generic;
 
@@ -20,8 +21,6 @@ namespace MilkInfo
         private static Dictionary<StardewValley.Object, int> machineRegister = new Dictionary<StardewValley.Object, int>();
         private static Texture2D pixel;
 
-        private static readonly Color[] getColor = { Color.OrangeRed, Color.Orange, Color.Yellow, Color.LawnGreen };
-
         public override void Entry(params object[] objects)
         {
             // Load config file (config.json).
@@ -30,7 +29,6 @@ namespace MilkInfo
             PlayerEvents.LoadedGame += PlayerEvents_LoadedGame;
             GraphicsEvents.OnPostRenderEvent += drawTickEvent;
             GraphicsEvents.OnPostRenderEvent += drawProgessBar;
-
         }
 
         private void drawProgessBar(object sender, EventArgs e)
@@ -42,7 +40,7 @@ namespace MilkInfo
             }
 
             if (!Game1.hasLoadedGame) return;
-            
+
             foreach (KeyValuePair<Vector2, StardewValley.Object> entry in Game1.currentLocation.objects)
             {
                 StardewValley.Object tObj = entry.Value;
@@ -64,22 +62,34 @@ namespace MilkInfo
             foreach (KeyValuePair<StardewValley.Object, int> entry in machineRegister)
             {
                 StardewValley.Object obj = entry.Key;
-                Vector2 pos = obj.getLocalPosition(Game1.viewport);
+                Vector2 objPos = obj.getLocalPosition(Game1.viewport);
+                Rectangle bBox = obj.boundingBox;
 
                 /* calculate progress */
                 double progress = 100 - Math.Round((100 / (double)(entry.Value) * entry.Key.minutesUntilReady) * 2) / 2;
 
                 /* surrounding box */
-                Rectangle outerBox = new Rectangle((int)pos.X + 4, (int)pos.Y + 40 , obj.boundingBox.Width - offset, obj.boundingBox.Height / 2 - offset);
+                Rectangle outerBox = new Rectangle((int)objPos.X + 4, (int)objPos.Y + 40 , bBox.Width - offset, bBox.Height / 2 - offset);
 
                 /* actual progress bar box */
-                int barWidth = (int)(Math.Max(((double)(obj.boundingBox.Width - offset - boxOffset) / 100) * progress, 1));
-                Rectangle innerBox = new Rectangle((int)pos.X + 8, (int)pos.Y + 44, barWidth, obj.boundingBox.Height / 2 - offset - boxOffset);
-                
-                /* Draw Stuff*/
-                Game1.spriteBatch.Draw(pixel, outerBox, Color.SaddleBrown);
-                Game1.spriteBatch.Draw(pixel, innerBox, getColor[(int)progress / (100 / getColor.Length)]);
+                int barWidth = (int)(Math.Max(((double)(bBox.Width - offset - boxOffset) / 100) * progress, 1));
+                Rectangle innerBox = new Rectangle((int)objPos.X + 8, (int)objPos.Y + 44, barWidth, bBox.Height / 2 - offset - boxOffset);
 
+                MouseState mState = Mouse.GetState();
+                Point mouseNormalized = new Point((int) (mState.X / Game1.options.zoomLevel), (int) (mState.Y / Game1.options.zoomLevel));
+
+                /*Rectangle hoverBox = new Rectangle((int) (mState.X / Game1.options.zoomLevel), (int) (mState.Y / Game1.options.zoomLevel), bBox.Width, bBox.Height);
+                Game1.spriteBatch.Draw(pixel, hoverBox, Color.Tan);*/
+
+                Rectangle fakeBoundingBox = new Rectangle((int)objPos.X, (int)(objPos.Y), bBox.Width, bBox.Height);
+                //Game1.spriteBatch.Draw(pixel, fakeBoundingBox, Color.DarkRed);
+
+                if (fakeBoundingBox.Contains(mouseNormalized))
+                {
+                    /* Draw Stuff when hovered*/
+                    Game1.spriteBatch.Draw(pixel, outerBox, Color.SaddleBrown);
+                    Game1.spriteBatch.Draw(pixel, innerBox, getProgressColor((int)progress / 25));
+                }
             }
         }
 
@@ -157,6 +167,21 @@ namespace MilkInfo
                 }
             }
 
+        }
+        private static Color getProgressColor(int progress)
+        {
+            switch (progress)
+            {
+                case 0:
+                    return Color.OrangeRed;
+                case 1:
+                    return Color.Orange;
+                case 2:
+                    return Color.Yellow;
+                case 3:
+                    return Color.LawnGreen;
+            }
+            return Color.Transparent;
         }
     }
 }
