@@ -16,19 +16,24 @@ namespace MilkInfo
         private static readonly int offset = 10;
         private static readonly int boxOffset = 8;
         private static readonly int playEmote = 40;
-        private static MilkInfoConfig ModConfig { get; set; }
         private static int updateInterval = 0;
         private static Dictionary<StardewValley.Object, int> machineRegister = new Dictionary<StardewValley.Object, int>();
         private static Texture2D pixel;
+        public static IMonitor logger;
 
-        public override void Entry(params object[] objects)
+        private static ModConfig config;
+
+        public override void Entry(IModHelper helper)
         {
-            // Load config file (config.json).
-            ModConfig = new MilkInfoConfig().InitializeConfig(BaseConfigPath);
+            logger = this.Monitor;
+            // load config
+            config = helper.ReadConfig<ModConfig>();
             // Execute a handler when the save file is loaded.
-            PlayerEvents.LoadedGame += PlayerEvents_LoadedGame;
-            GraphicsEvents.OnPostRenderEvent += drawTickEvent;
+
+            SaveEvents.AfterLoad += this.SaveEvents_AfterLoad;
+            //GraphicsEvents.OnPostRenderEvent += drawTickEvent;
             GraphicsEvents.OnPostRenderEvent += drawProgessBar;
+
         }
 
         private void drawProgessBar(object sender, EventArgs e)
@@ -50,7 +55,7 @@ namespace MilkInfo
                     if (tObj.minutesUntilReady > 0 && !keyPresent)
                     {
                         machineRegister.Add(tObj, tObj.minutesUntilReady);
-                        Log.Debug(String.Format("Name: {0} Readyin: {1} Harvest: {2}", tObj.name, tObj.minutesUntilReady, tObj.readyForHarvest));
+                        this.Monitor.Log(String.Format("Name: {0} Readyin: {1} Harvest: {2}", tObj.name, tObj.minutesUntilReady, tObj.readyForHarvest), LogLevel.Debug);
                     }
                     if (tObj.readyForHarvest && keyPresent)
                     {
@@ -101,7 +106,7 @@ namespace MilkInfo
 
                 Texture2D fileTexture;
 
-                using (FileStream fileStream = new FileStream(Path.Combine(PathOnDisk, @"Resources\herz.png"), FileMode.Open))
+                using (FileStream fileStream = new FileStream(Path.Combine(this.Helper.DirectoryPath, @"Resources\herz.png"), FileMode.Open))
                 {
                     fileTexture = Texture2D.FromStream(Game1.graphics.GraphicsDevice, fileStream);
                 }
@@ -122,7 +127,7 @@ namespace MilkInfo
             return Convert.ToInt32(Math.Ceiling(Game1.options.zoomLevel));
         }
 
-        private static void PlayerEvents_LoadedGame(object sender, EventArgsLoadedGameChanged e)
+        private void SaveEvents_AfterLoad(object sender, EventArgs e)
         {
             // Only load the event handler after the save file has been loaded.
             GameEvents.OneSecondTick += TimeEvents_ShowMilkIcon;
@@ -132,7 +137,7 @@ namespace MilkInfo
         {
             // The logic in this handler will be executed once every <ModConfig.UpdateInterval> seconds.
             updateInterval++;
-            if (updateInterval < ModConfig.UpdateInterval)
+            if (updateInterval < config.UpdateInterval)
             {
                 return;
             }
@@ -142,14 +147,14 @@ namespace MilkInfo
             var currentLocation = Game1.currentLocation;
             if (currentLocation == null || !currentLocation.isFarm)
             {
-                Log.Error("Failed to get correct Location");
+                logger.Log("Failed to get correct Location", LogLevel.Error);
                 return;
             }
 
             var animals = Game1.getFarm().getAllFarmAnimals();
             if (animals == null)
             {
-                Log.Error("Failed to retrieve farm animals.");
+                logger.Log("Failed to retrieve farm animals.", LogLevel.Error);
                 return;
             }
 

@@ -1,6 +1,8 @@
 {
   "Name": "MilkInfo",
   "Authour": "Perlo_0ung",
+  "Version": "1.0",
   "Description": "Show Milk on Cow",
+  "UniqueID": "Perlo_0ung.MilkInfo",
   "EntryDll":  "MilkInfo.dll"
 }
